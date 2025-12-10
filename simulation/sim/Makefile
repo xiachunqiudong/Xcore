@@ -3,8 +3,9 @@ TOP = xcore_tb
 
 BUILD_DIR = ./build
 
-FILELIST += -file $(XCORE_HOME)/rtl/simulation/filelist.f
+FILELIST += -file $(XCORE_HOME)/simulation/filelist.f
 FILELIST += -file $(XCORE_HOME)/rtl/chisel_gen/filelist.f
+
 build:
 	mkdir -p $(BUILD_DIR) && \
 	cd $(abspath $(BUILD_DIR)) && \
