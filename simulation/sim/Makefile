@@ -16,10 +16,11 @@ build:
 	-top $(TOP) -l build.log
 
 sim:
-	$(BUILD_DIR)/simv
+	$(BUILD_DIR)/simv +ram_init_path=$(CASE_PATH)/$(CASE_NAME).hex \
+	+fsdb_path=$(CASE_PATH)/$(CASE_NAME).fsdb
 
 vd:
 	verdi -elab $(BUILD_DIR)/simv.daidir/kdb \
-	-ssf $(BUILD_DIR)/tb.fsdb &
+	-ssf $(CASE_PATH)/$(CASE_NAME).fsdb &
 
 .PHONY: build vd
