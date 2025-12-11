@@ -73,6 +73,7 @@ module ram #(
   
   initial begin
     if ($value$plusargs("ram_init_path=%s", ram_init_path)) begin
+      $display("Ram data init from %s", ram_init_path);
       $readmemh(ram_init_path, dataArray);
     end
     else begin

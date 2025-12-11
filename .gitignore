@@ -1,2 +1,10 @@
 /out
 /simulation/sim/build
+*.fsdb
+*.log
+*.hex
+*.dis
+*.elf
+*.conf
+*.key
+/simulation/sim/verdiLog

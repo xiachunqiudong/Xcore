@@ -66,10 +66,19 @@ module xcore_tb;
     .rData  (rData[AXI_DW-1:0])
   );
 
-  string fsdb_file = "/home/host/project/ysyx-workbench/xcore/sim/build/tb.fsdb";
+  string fsdb_path;
 
   initial begin
-    $fsdbDumpfile(fsdb_file, 1024);
+    if ($value$plusargs("fsdb_path=%s", fsdb_path)) begin
+      $display("fsdb is write to %s", fsdb_path);
+    end
+    else begin
+      fsdb_path = "tb.fsdb";
+    end
+  end
+
+  initial begin
+    $fsdbDumpfile(fsdb_path, 1024);
     $fsdbDumpvars(0, xcore_tb);
     $fsdbDumpvars("+struct");
     $fsdbDumpvars("+mda");

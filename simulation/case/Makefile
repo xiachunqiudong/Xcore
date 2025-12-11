@@ -11,4 +11,4 @@ dis:
 	$(OBJDUMP) $(TARGET).elf -d > $(TARGET).dis
 
 hex:
-	python3 $(XCORE_HOME)/simulation/tools/elf_util.py $(shell pwd)/$(TARGET).elf
+	python3 $(XCORE_HOME)/tools/elf_util.py $(shell pwd)/$(TARGET).elf
