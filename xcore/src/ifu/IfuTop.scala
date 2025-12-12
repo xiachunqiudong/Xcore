@@ -39,12 +39,10 @@ class IfuTop extends XModule {
     pc_Q := pc_In
   }
 
-  val instQueue = Module(new InstQueue(EntryNum=32, BankNum=4, ReadPotr=4, WritePort=4))
+  val instQueue = Module(new InstQueue(EntryNum=8, BankNum=1, ReadPotr=1, gen=UInt(32.W)))
 
   for (r <- 0 until IFU_WIDTH) {
     instQueue.io.fetchValidVec(r) := true.B
     instQueue.io.fetchInstVec(r) := fetchInstVec(r)
   }
-
 }
-

@@ -10,25 +10,10 @@ module XcoreTop(
   input  [127:0] io_axiChannel_rChannel_rData
 );
 
-  wire [4:0]   decoderVec_3_io_uop_ldst;
-  wire [4:0]   decoderVec_3_io_uop_lsrc2;
-  wire [4:0]   decoderVec_3_io_uop_lsrc1;
-  wire [4:0]   decoderVec_2_io_uop_ldst;
-  wire [4:0]   decoderVec_2_io_uop_lsrc2;
-  wire [4:0]   decoderVec_2_io_uop_lsrc1;
-  wire [4:0]   decoderVec_1_io_uop_ldst;
-  wire [4:0]   decoderVec_1_io_uop_lsrc2;
-  wire [4:0]   decoderVec_1_io_uop_lsrc1;
   wire [4:0]   decoderVec_0_io_uop_ldst;
   wire [4:0]   decoderVec_0_io_uop_lsrc2;
   wire [4:0]   decoderVec_0_io_uop_lsrc1;
-  wire [31:0]  ifuTop_io_instVec_3;
-  wire [31:0]  ifuTop_io_instVec_2;
-  wire [31:0]  ifuTop_io_instVec_1;
   wire [31:0]  ifuTop_io_instVec_0;
-  wire         ifuTop_io_instValidVec_3;
-  wire         ifuTop_io_instValidVec_2;
-  wire         ifuTop_io_instValidVec_1;
   wire         ifuTop_io_instValidVec_0;
   wire         io_axiChannel_arChannel_arReady_0 = io_axiChannel_arChannel_arReady;
   wire         io_axiChannel_rChannel_rValid_0 = io_axiChannel_rChannel_rValid;
@@ -49,21 +34,12 @@ module XcoreTop(
     .io_ifuRChannel_rReady   (ifuTop_io_ifuRChannel_rReady),
     .io_ifuRChannel_rData    (ifuTop_io_ifuRChannel_rData),
     .io_instValidVec_0       (ifuTop_io_instValidVec_0),
-    .io_instValidVec_1       (ifuTop_io_instValidVec_1),
-    .io_instValidVec_2       (ifuTop_io_instValidVec_2),
-    .io_instValidVec_3       (ifuTop_io_instValidVec_3),
-    .io_instVec_0            (ifuTop_io_instVec_0),
-    .io_instVec_1            (ifuTop_io_instVec_1),
-    .io_instVec_2            (ifuTop_io_instVec_2),
-    .io_instVec_3            (ifuTop_io_instVec_3)
+    .io_instVec_0            (ifuTop_io_instVec_0)
   );
   wire         io_axiChannel_arChannel_arValid_0 = ifuTop_io_ifuARChannel_arValid;
   wire [31:0]  io_axiChannel_arChannel_arAddr_0 = ifuTop_io_ifuARChannel_arAddr;
   wire         io_axiChannel_rChannel_rReady_0 = ifuTop_io_ifuRChannel_rReady;
   wire [31:0]  decoderVec_0_io_inst = ifuTop_io_instVec_0;
-  wire [31:0]  decoderVec_1_io_inst = ifuTop_io_instVec_1;
-  wire [31:0]  decoderVec_2_io_inst = ifuTop_io_instVec_2;
-  wire [31:0]  decoderVec_3_io_inst = ifuTop_io_instVec_3;
   Decoder decoderVec_0 (
     .clock        (clock),
     .reset        (reset),
@@ -71,30 +47,6 @@ module XcoreTop(
     .io_uop_lsrc1 (decoderVec_0_io_uop_lsrc1),
     .io_uop_lsrc2 (decoderVec_0_io_uop_lsrc2),
     .io_uop_ldst  (decoderVec_0_io_uop_ldst)
-  );
-  Decoder decoderVec_1 (
-    .clock        (clock),
-    .reset        (reset),
-    .io_inst      (decoderVec_1_io_inst),
-    .io_uop_lsrc1 (decoderVec_1_io_uop_lsrc1),
-    .io_uop_lsrc2 (decoderVec_1_io_uop_lsrc2),
-    .io_uop_ldst  (decoderVec_1_io_uop_ldst)
-  );
-  Decoder decoderVec_2 (
-    .clock        (clock),
-    .reset        (reset),
-    .io_inst      (decoderVec_2_io_inst),
-    .io_uop_lsrc1 (decoderVec_2_io_uop_lsrc1),
-    .io_uop_lsrc2 (decoderVec_2_io_uop_lsrc2),
-    .io_uop_ldst  (decoderVec_2_io_uop_ldst)
-  );
-  Decoder decoderVec_3 (
-    .clock        (clock),
-    .reset        (reset),
-    .io_inst      (decoderVec_3_io_inst),
-    .io_uop_lsrc1 (decoderVec_3_io_uop_lsrc1),
-    .io_uop_lsrc2 (decoderVec_3_io_uop_lsrc2),
-    .io_uop_ldst  (decoderVec_3_io_uop_ldst)
   );
   assign io_axiChannel_arChannel_arValid = io_axiChannel_arChannel_arValid_0;
   assign io_axiChannel_arChannel_arAddr = io_axiChannel_arChannel_arAddr_0;

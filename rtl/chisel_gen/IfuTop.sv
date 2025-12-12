@@ -9,18 +9,10 @@ module IfuTop(
   output         io_ifuRChannel_rReady,
   input  [127:0] io_ifuRChannel_rData,
   output         io_instValidVec_0,
-  output         io_instValidVec_1,
-  output         io_instValidVec_2,
-  output         io_instValidVec_3,
-  output [31:0]  io_instVec_0,
-  output [31:0]  io_instVec_1,
-  output [31:0]  io_instVec_2,
-  output [31:0]  io_instVec_3
+  output [31:0]  io_instVec_0
 );
 
-  wire [31:0]  fetchInstVec_3;
-  wire [31:0]  fetchInstVec_2;
-  wire [31:0]  fetchInstVec_1;
+  wire         instQueue_io_enqueueAllowIn;
   wire [31:0]  fetchInstVec_0;
   wire         io_ifuARChannel_arReady_0 = io_ifuARChannel_arReady;
   wire         io_ifuRChannel_rValid_0 = io_ifuRChannel_rValid;
@@ -28,27 +20,12 @@ module IfuTop(
   wire         io_ifuARChannel_arValid_0 = 1'h1;
   wire         io_ifuRChannel_rReady_0 = 1'h1;
   wire         instQueue_io_fetchValidVec_0 = 1'h1;
-  wire         instQueue_io_fetchValidVec_1 = 1'h1;
-  wire         instQueue_io_fetchValidVec_2 = 1'h1;
-  wire         instQueue_io_fetchValidVec_3 = 1'h1;
   wire         io_instValidVec_0_0 = io_ifuRChannel_rValid_0;
-  wire         io_instValidVec_1_0 = io_ifuRChannel_rValid_0;
-  wire         io_instValidVec_2_0 = io_ifuRChannel_rValid_0;
-  wire         io_instValidVec_3_0 = io_ifuRChannel_rValid_0;
   reg  [63:0]  pc_Q;
   wire [31:0]  instQueue_io_fetchInstVec_0 = fetchInstVec_0;
-  wire [31:0]  instQueue_io_fetchInstVec_1 = fetchInstVec_1;
-  wire [31:0]  instQueue_io_fetchInstVec_2 = fetchInstVec_2;
-  wire [31:0]  instQueue_io_fetchInstVec_3 = fetchInstVec_3;
   wire [31:0]  io_ifuARChannel_arAddr_0 = pc_Q[31:0];
   wire [31:0]  io_instVec_0_0 = io_ifuRChannel_rData_0[31:0];
   assign fetchInstVec_0 = io_ifuRChannel_rData_0[31:0];
-  wire [31:0]  io_instVec_1_0 = io_ifuRChannel_rData_0[63:32];
-  assign fetchInstVec_1 = io_ifuRChannel_rData_0[63:32];
-  wire [31:0]  io_instVec_2_0 = io_ifuRChannel_rData_0[95:64];
-  assign fetchInstVec_2 = io_ifuRChannel_rData_0[95:64];
-  wire [31:0]  io_instVec_3_0 = io_ifuRChannel_rData_0[127:96];
-  assign fetchInstVec_3 = io_ifuRChannel_rData_0[127:96];
   wire [64:0]  _GEN = 65'({1'h0, pc_Q} + 65'h4);
   wire [63:0]  pc_In = _GEN[63:0];
   wire         pc_wen = io_ifuARChannel_arValid_0 & io_ifuARChannel_arReady_0;
@@ -56,13 +33,8 @@ module IfuTop(
     .clock              (clock),
     .reset              (reset),
     .io_fetchValidVec_0 (instQueue_io_fetchValidVec_0),
-    .io_fetchValidVec_1 (instQueue_io_fetchValidVec_1),
-    .io_fetchValidVec_2 (instQueue_io_fetchValidVec_2),
-    .io_fetchValidVec_3 (instQueue_io_fetchValidVec_3),
-    .io_fetchInstVec_0  (instQueue_io_fetchInstVec_0),
-    .io_fetchInstVec_1  (instQueue_io_fetchInstVec_1),
-    .io_fetchInstVec_2  (instQueue_io_fetchInstVec_2),
-    .io_fetchInstVec_3  (instQueue_io_fetchInstVec_3)
+    .io_enqueueAllowIn  (instQueue_io_enqueueAllowIn),
+    .io_fetchInstVec_0  (instQueue_io_fetchInstVec_0)
   );
   always @(posedge clock or posedge reset) begin
     if (reset)
@@ -88,12 +60,6 @@ module IfuTop(
   assign io_ifuARChannel_arAddr = io_ifuARChannel_arAddr_0;
   assign io_ifuRChannel_rReady = io_ifuRChannel_rReady_0;
   assign io_instValidVec_0 = io_instValidVec_0_0;
-  assign io_instValidVec_1 = io_instValidVec_1_0;
-  assign io_instValidVec_2 = io_instValidVec_2_0;
-  assign io_instValidVec_3 = io_instValidVec_3_0;
   assign io_instVec_0 = io_instVec_0_0;
-  assign io_instVec_1 = io_instVec_1_0;
-  assign io_instVec_2 = io_instVec_2_0;
-  assign io_instVec_3 = io_instVec_3_0;
 endmodule
 
