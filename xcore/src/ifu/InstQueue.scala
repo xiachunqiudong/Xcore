@@ -25,83 +25,95 @@ class leftCircularShift(DW: Int) extends Module {
 
 }
 
-class InstFifoEntry extends Module {
+class BasicFifo[T <: Data] (EntryNum: Int, gen: T) extends Module {
   val io = IO(new Bundle {
-    val wen     = Input(Bool())
-    val inst_In = Input(UInt(32.W))
-    val inst_Q  = Output(UInt(32.W))
+    val push = Input(Bool())
+    val pop  = Input(Bool())
+    val din  = Input(gen)
+    val dout = Output(gen)
   })
 
-  val instReg = RegEnable(io.inst_In, io.wen)
+  require(isPow2(EntryNum), s"FIFO Entry Num must be power of 2, but $EntryNum")
 
-  io.inst_Q := instReg
+  val ptrWidth = log2Ceil(EntryNum)
 
-}
+  val entryArray = Seq.fill(EntryNum)(Reg(gen))
 
-class InstFifo (EntryNum: Int) extends Module {
-  val io = IO(new Bundle {
-    val push    = Input(Bool())
-    // val pop     = Input(Bool())
-    val inst_In = Input(UInt(32.W))
-    val inst_Q  = Output(UInt(32.W))
-  })
+  val writePtr_Q = RegInit(0.U(ptrWidth.W))
+  val readPtr_Q = RegInit(0.U(ptrWidth.W))
 
-  val entryArray = Seq.fill(EntryNum)(Module(new InstFifoEntry))
+  val readPtrDcd    = UIntToOH(readPtr_Q)
+  val writePtrDcd   = UIntToOH(writePtr_Q)
+  val writePtrDcdWv = Wire(Vec(EntryNum, Bool()))
 
-// Write
-  val writePtrDcd_In = Wire(UInt(EntryNum.W))
-  val writePtrDcd_Q  = RegInit(0.U(EntryNum.W))
+  dontTouch(readPtrDcd)
+  dontTouch(writePtrDcd)
+  dontTouch(writePtrDcdWv)
 
-  writePtrDcd_In := Cat(writePtrDcd_Q(EntryNum-2,0), writePtrDcd_Q(EntryNum-1))
-
-  when (io.push) {
-    writePtrDcd_Q := writePtrDcd_In
+//------------------------------------------------------------
+//                           Write
+//------------------------------------------------------------
+  when (io.pop) {
+    readPtr_Q := readPtr_Q + 1.U
   }
 
-// Read
+  for (i <- 0 until EntryNum) {
+    writePtrDcdWv(i) := writePtrDcd(i) & io.push
+  }
 
   for (e <- 0 until EntryNum) {
-    entryArray(e).io.wen     := io.push & (writePtrDcd_Q(e))
-    entryArray(e).io.inst_In := io.inst_In
+    when (writePtrDcdWv(e)) {
+      entryArray(e) := io.din
+    }
   }
 
-  io.inst_Q := entryArray(0).io.inst_Q
+//------------------------------------------------------------
+//                           Read
+//------------------------------------------------------------
+  when (io.push) {
+    writePtr_Q := writePtr_Q + 1.U
+  }
+
+  io.dout := Mux1H(readPtrDcd, entryArray)
 
 }
 
-class InstQueue (EntryNum: Int, BankNum: Int, ReadPotr: Int, WritePort: Int) extends Module {
+class InstQueue[T <: Data] (EntryNum: Int, BankNum: Int, ReadPotr: Int, gen: T) extends Module {
   val io = IO(new Bundle{
-    val fetchValidVec = Input(Vec(WritePort, Bool()))
-    val fetchInstVec  = Input(Vec(WritePort, UInt(32.W)))
+    val fetchValidVec  = Input(Vec(BankNum, Bool()))
+    val enqueueAllowIn = Output(Bool())
+    val fetchInstVec   = Input(Vec(BankNum, gen))
   })
 
-  def bitRotateLeft(data: UInt, shiftNum: UInt): UInt = {
-    val W = data.getWidth
-    val shiftCandidates = (0 until W).map { k =>
-      if (k == 0) data
-      else Cat(data((W-1-k), 0), data((W-1), (W-k)))
-    }
-    Mux1H(UIntToOH(shiftNum), shiftCandidates)
-  }
-
-  val bankPtrWidth = log2Ceil(BankNum)
-
+  val bankPtrWidth    = log2Ceil(BankNum)
+  val sizeWidth       = log2Ceil(EntryNum) + 1
   val EntryNumPerBank = EntryNum / BankNum
 
-  val InstFifoVec = Seq.fill(BankNum)(Module(new InstFifo(EntryNum=EntryNumPerBank)))
+  val enqueueValid = io.fetchValidVec.asUInt.orR
+  val enqueueNum   = Wire(UInt(sizeWidth.W))
+  val dequeueNum   = Wire(UInt(sizeWidth.W))
+  val queueSize_Q  = RegInit(0.U(sizeWidth.W))
+  val queueSize_In = Wire(UInt(sizeWidth.W))
+  dontTouch(queueSize_In)
+  dontTouch(queueSize_Q)
 
-  val bankWritePtr_Q = RegInit(0.U(bankPtrWidth.W))
+  io.enqueueAllowIn := queueSize_Q + enqueueNum <= EntryNum.U
 
-  val fetchValidVecShifter = Module(new leftCircularShift(WritePort))
-  fetchValidVecShifter.io.in       := io.fetchValidVec.asUInt
-  fetchValidVecShifter.io.shiftNum := bankWritePtr_Q
+  val enqueueFire = enqueueValid & io.enqueueAllowIn
 
-  val fetchValidVecShift = fetchValidVecShifter.io.out
-  dontTouch(fetchValidVecShift)
+  enqueueNum   := PopCount(io.fetchValidVec)
+  dequeueNum   := 0.U
+  queueSize_In := queueSize_Q + Mux(enqueueFire, enqueueNum, 0.U) - dequeueNum
 
-  for (bank <- 0 until BankNum) {
-    InstFifoVec(bank).io.push    := fetchValidVecShift(bank)
-    InstFifoVec(bank).io.inst_In :=  io.fetchInstVec(0)
+  when (enqueueFire) {
+    queueSize_Q := queueSize_In
+  }
+  val InstFifoVec = Seq.fill(BankNum)(Module(new BasicFifo(EntryNum=EntryNumPerBank,gen=gen)))
+
+  for (i <- 0 until BankNum) {
+    InstFifoVec(i).io.push := io.fetchValidVec(i)
+    InstFifoVec(i).io.pop  := false.B
+    InstFifoVec(i).io.din  := io.fetchInstVec(i)
   }
 
 }
